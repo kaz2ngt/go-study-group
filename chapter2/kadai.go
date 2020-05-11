@@ -1,5 +1,7 @@
 package chapter2
 
+import "fmt"
+
 // 引数のスライスsliceの要素数が
 // 0の場合、0とエラー
 // 2以下の場合、要素を掛け算
@@ -11,7 +13,24 @@ func Calc(slice []int) (int, error) {
 	// fmt.Errorf(“invalid op=%s”, op) などでエラー内容を返却するのがよい
 	// https://golang.org/pkg/fmt/#Errorf
 
-	return 0, nil
+	if length := len(slice); length == 0 {
+		return 0, fmt.Errorf("invalid len(slice)=%d", length)
+	} else if length <= 2 {
+		// 積和(初期値1)
+		sumOfProducts := 1
+		for _, value := range slice {
+			sumOfProducts *= value
+		}
+		return sumOfProducts, nil
+	}
+
+	// 和(初期値0)
+	sum := 0
+	for _, value := range slice {
+		sum += value
+	}
+
+	return sum, nil
 }
 
 type Number struct {
@@ -23,7 +42,9 @@ type Number struct {
 func Numbers() []Number {
 	// TODO Q2
 
-	return nil
+	result := []Number{{1}, {2}, {3}}
+
+	return result
 }
 
 // 引数mをforで回し、「値」部分だけの和を返却
@@ -32,7 +53,13 @@ func Numbers() []Number {
 func CalcMap(m map[string]int) int {
 	// TODO Q3
 
-	return 0
+	// for文内で毎回ifチェックするよりは早いはず
+	sum := -m["yon"]
+	for _, value := range m {
+		sum += value
+	}
+
+	return sum
 }
 
 type Model struct {
@@ -43,6 +70,9 @@ type Model struct {
 func Add(models []Model) {
 	// TODO  Q4
 
+	for index := range models {
+		models[index].Value += 5
+	}
 }
 
 // 引数のスライスには重複な値が格納されているのでユニークな値のスライスに加工して返却
@@ -51,12 +81,32 @@ func Add(models []Model) {
 func Unique(slice []int) []int {
 	// TODO Q5
 
-	return nil
+	// capを余裕をもって確保
+	uniqueSlice := make([]int, 0, len(slice))
+	uniqueMap := make(map[int]bool)
+	for _, value := range slice {
+		if uniqueMap[value] {
+			continue
+		}
+		uniqueMap[value] = true
+		uniqueSlice = append(uniqueSlice, value)
+	}
+	// cap削減
+	uniqueSlice = append([]int{}, uniqueSlice...)
+
+	return uniqueSlice
 }
 
 // 連続するフィボナッチ数(0, 1, 1, 2, 3, 5, ...)を返す関数(クロージャ)を返却
 func Fibonacci() func() int {
 	// TODO Q6 オプション
 
-	return nil
+	current := 0
+	next := 1
+	return func() int {
+		result := current
+		current = next
+		next = next + result
+		return result
+	}
 }
