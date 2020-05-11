@@ -20,8 +20,10 @@ func Calc(op string, x, y int) (int, error) {
 
 	// TODO Q1
 
-	var result int
-	var err error
+	var (
+		result int
+		err    error
+	)
 
 	switch op {
 	case "+":
@@ -136,6 +138,9 @@ func SumFromFileNumber(filePath string) (int, error) {
 			return 0, err
 		}
 		result += number
+	}
+	if err = scanner.Err(); err != nil {
+		return 0, err
 	}
 
 	return result, nil
