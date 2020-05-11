@@ -42,7 +42,11 @@ type Number struct {
 func Numbers() []Number {
 	// TODO Q2
 
-	result := []Number{{1}, {2}, {3}}
+	length := 3
+	result := make([]Number, 0, length)
+	for i := 1; i <= length; i++ {
+		result = append(result, Number{index: i})
+	}
 
 	return result
 }
