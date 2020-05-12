@@ -87,16 +87,14 @@ func Unique(slice []int) []int {
 
 	// capを余裕をもって確保
 	uniqueSlice := make([]int, 0, len(slice))
-	uniqueMap := make(map[int]bool)
+	uniqueMap := make(map[int]struct{})
 	for _, value := range slice {
-		if uniqueMap[value] {
+		if _, ok := uniqueMap[value]; ok {
 			continue
 		}
-		uniqueMap[value] = true
+		uniqueMap[value] = struct{}{}
 		uniqueSlice = append(uniqueSlice, value)
 	}
-	// cap削減
-	uniqueSlice = append([]int{}, uniqueSlice...)
 
 	return uniqueSlice
 }
