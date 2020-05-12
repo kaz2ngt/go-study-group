@@ -9,3 +9,7 @@ type Kadai2 struct {
 	id   int
 	name string
 }
+
+func NewKadai2(id int, name string) *Kadai2 {
+	return &Kadai2{id: id, name: name}
+}
