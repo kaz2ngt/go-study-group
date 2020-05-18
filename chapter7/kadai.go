@@ -18,6 +18,10 @@ var fortuneList = [...]string{
 func handler(w http.ResponseWriter, r *http.Request) {
 	rand.Seed(time.Now().UnixNano())
 	fortune := fortuneList[rand.Intn(len(fortuneList))]
+	if p := r.FormValue("p"); p == "cheat" {
+		// p=cheatが指定されているときは大吉
+		fortune = "大吉"
+	}
 	fmt.Fprint(w, fortune)
 }
 
