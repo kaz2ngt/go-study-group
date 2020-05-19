@@ -14,18 +14,25 @@ var fortuneList = [...]string{
 	"凶",
 }
 
+func runFortune(isCheat bool) string {
+	rand.Seed(time.Now().UnixNano())
+	if isCheat {
+		// 大吉を返却
+		return fortuneList[0]
+	}
+	fortune := fortuneList[rand.Intn(len(fortuneList))]
+	return fortune
+}
+
 // 処理ハンドラマップ
 var handlerMap = map[string]http.HandlerFunc{
 	"/": func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "Hello, server.")
 	},
 	"/fortune": func(w http.ResponseWriter, r *http.Request) {
-		rand.Seed(time.Now().UnixNano())
-		fortune := fortuneList[rand.Intn(len(fortuneList))]
-		if p := r.FormValue("p"); p == "cheat" {
-			// p=cheatが指定されているときは大吉
-			fortune = "大吉"
-		}
+		p := r.FormValue("p")
+		isCheat := p == "cheat"
+		fortune := runFortune(isCheat)
 		fmt.Fprint(w, fortune)
 	},
 }
