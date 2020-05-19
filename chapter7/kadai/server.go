@@ -2,12 +2,16 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/apbgo/go-study-group/chapter7/kadai/model"
@@ -81,11 +85,42 @@ var handlerMap = map[string]http.HandlerFunc{
 }
 
 func main() {
+	mux := http.NewServeMux()
 	// ハンドラをエントリポイントと紐付け
 	for path, handler := range handlerMap {
-		http.HandleFunc(path, handler)
+		mux.HandleFunc(path, handler)
 	}
 
-	// サーバをlocalhost:8080で起動
-	http.ListenAndServe(":8080", nil)
+	srv := http.Server{
+		Addr:    ":8080",
+		Handler: mux,
+	}
+
+	// OSからのシグナルを待つ
+	go func() {
+		// SIGTERM: コンテナが終了する時に送信されるシグナル
+		// SIGINT: Ctrl+c
+		sigCh := make(chan os.Signal, 1)
+		// 受け取るシグナルを指定
+		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+		// チャネルでの待受、シグナルを受け取るまで以降は処理されない
+		<-sigCh
+
+		log.Println("start graceful shutdown server.")
+		// タイムアウトのコンテキストを設定（後述）
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
+
+		// Graceful shutdown
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Println(err)
+			// 接続されたままのコネクションも明示的に切る
+			srv.Close()
+		}
+		log.Println("HTTPServer shutdown.")
+	}()
+
+	if err := srv.ListenAndServe(); err != nil {
+		log.Print(err)
+	}
 }
