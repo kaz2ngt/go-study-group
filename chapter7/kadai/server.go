@@ -1,10 +1,16 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"math/rand"
 	"net/http"
 	"time"
+
+	"github.com/apbgo/go-study-group/chapter7/kadai/model"
 )
 
 var fortuneList = [...]string{
@@ -34,6 +40,43 @@ var handlerMap = map[string]http.HandlerFunc{
 		isCheat := p == "cheat"
 		fortune := runFortune(isCheat)
 		fmt.Fprint(w, fortune)
+	},
+	"/user_fortune": func(w http.ResponseWriter, r *http.Request) {
+		// リクエストボディの取得
+		defer r.Body.Close()
+
+		// リクエストBodyの内容を取得
+		var req model.Request
+		// []byteに変換
+		data, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			log.Println(err.Error())
+			return
+		}
+		err = json.Unmarshal(data, &req)
+		if err != nil {
+			log.Println(err.Error())
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		log.Println(req)
+
+		// レスポンスの作成
+		response := model.Response{
+			Status: http.StatusOK,
+			Data:   fmt.Sprintf("ID:%vの%sさんの運勢は%sです！", req.UserID, req.Name, runFortune(false)),
+		}
+		log.Println(response)
+
+		var res bytes.Buffer
+		enc := json.NewEncoder(&res)
+		if err = enc.Encode(response); err != nil {
+			log.Println(err.Error())
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		w.Header().Set("Content-Type", "application/json")
+
+		w.Write(res.Bytes())
 	},
 }
 
